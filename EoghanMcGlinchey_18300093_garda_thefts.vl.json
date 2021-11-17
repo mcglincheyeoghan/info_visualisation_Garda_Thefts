@@ -1,0 +1,259 @@
+{
+  "$schema": "https://vega.github.io/schema/vega-lite/v4.json",
+  "data": {
+    "url": "https://raw.githubusercontent.com/colmr/vis_class/master/Thefts2003-2015.csv"
+  },
+  "title": {
+    "text": "Exploring Irish Thefts",
+    "anchor": "middle",
+    "fontSize": 20
+  },
+  "description": "An interactive 'dashboard' style visualisation to enable analysis and exploration of thefts recorded at different Garda stations in Ireland between 2003 and 2015.",
+  "hconcat": [
+    {
+      "vconcat": [
+        {
+          "description": "A choropleth that shows the location of all Ireland's Garda Stations. Each point is coloured according to the total number of thefts recorded at that Garda Station between 2003 and 2015. Hovering over a station provides a tooltip containing the station name and the total number of thefts recorded at that station.",
+          "transform": [
+            {
+              "filter": {
+                "selection": "div_selection"
+              }
+            },
+            {
+              "filter": {
+                "param": "brush"
+              }
+            }
+          ],
+          "width": 400,
+          "height": 600,
+          "layer": [
+            {
+              "data": {
+                "url": "https://raw.githubusercontent.com/colmr/vis_class/master/Ireland_custom_topjson.json",
+                "format": {
+                  "type": "topojson",
+                  "feature": "IRL_adm1"              
+                }
+              },
+              "mark": {
+                "type": "geoshape",
+                "stroke": "white",
+                "fill": "#ddd"
+              }
+            },
+            {
+              "mark": "circle",
+              "encoding": {
+                "longitude": {
+                  "field": "Lon",
+                  "type": "quantitative"
+                },
+                "latitude": {
+                  "field": "Lat",
+                  "type": "quantitative"
+                },
+                "color": {
+                  "field": "Thefts",
+                  "type": "quantitative",
+                  "aggregate": "sum",
+                  "legend": {
+                    "title": "Thefts per Station",
+                    "labelFontSize": 12,
+                    "titleFontSize": 14
+                  },
+                  "scale": {
+                    "type": "threshold",
+                    "domain": [
+                      100,
+                      1000,
+                      5000
+                    ],
+                    "scheme": "viridis"
+                  }
+                },
+                "size": {
+                  "field": "Thefts",
+                  "type": "quantitative",
+                  "aggregate": "sum",
+                  "scale": {
+                    "type": "threshold",
+                    "domain": [
+                      100,
+                      1000,
+                      5000
+                    ],
+                    "range": [
+                      20,
+                      60,
+                      100,
+                      140
+                    ]
+                  }
+                },
+                "tooltip": [
+                  {
+                    "field": "Station",
+                    "type": "nominal"
+                  },
+                  {
+                    "field": "Thefts",
+                    "type": "quantitative",
+                    "aggregate": "sum"
+                  }
+
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "description": "The area chart at the bottom shows the frequency of thefts across different years and allows brush selection so that it's possible to select thefts recorded within a specific time range. The x-axis is of type ordinal because when I tried making it temporal, upon clicking a bar from the bar chart for the first time, the choropleth would update accordingly but the area chart would not, as well as that, an error 'cannor read property '0' of undefined' appeared. I felt that sacrificing the aesthetic of the area chart for its functionality was worthwhile.",
+          "width": 400,
+          "height": 120,
+          "transform": [
+            {
+              "filter": {
+                "selection": "div_selection"
+              }
+            }
+          ],
+          "layer": [
+            {
+              "params": [
+                {
+                  "name": "brush",
+                  "select": {
+                    "type": "interval", 
+                    "encodings": ["x"]
+                  }
+                }
+              ],
+              "mark": {
+                "type": "area",
+                "color": "#ddd"
+              },
+              "encoding": {
+                "x": {
+                  "field": "Year",
+                  "timeUnit": "year",
+                  "type": "ordinal",
+                  "axis": {
+                    "title": "Year",
+                    "titleFontSize": 16,
+                    "labelFontSize": 12,
+                    "grid": true
+                  }
+                },
+                "y": {
+                  "field": "Thefts",
+                  "type": "quantitative",
+                  "aggregate": "sum",
+                  "axis": {
+                    "title": "Thefts",
+                    "titleFontSize": 16,
+                    "labelFontSize": 12
+                  }
+                }
+              }
+            },
+            {
+              "transform": [
+                {
+                  "filter": {
+                    "param": "brush"
+                  }
+                }
+              ],
+              "mark": {
+                "type": "area",
+                "color": "#a79b9b"
+              },
+              "encoding": {
+                "x": {
+                  "field": "Year",
+                  "timeUnit": "year",
+                  "type": "temporal",
+                  "axis": {
+                    "title": "Year",
+                    "titleFontSize": 16,
+                    "labelFontSize": 12,
+                    "grid": true
+                  }
+                },
+                "y": {
+                  "field": "Thefts",
+                  "type": "quantitative",
+                  "aggregate": "sum",
+                  "axis": {
+                    "title": "Thefts",
+                    "titleFontSize": 16,
+                    "labelFontSize": 12
+                  }
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {  
+      "description": "The bar chart on the right shows the number of thefts recorded in each Division. Clicking on this chart filters the map on the left so that only the Garda Stations from that Division are shown and also filters the area chart so that only theft statistics from that Division are shown.",
+      "width": 125,
+      "height": 750,
+      "transform": [
+            {
+              "filter": {
+                "param": "brush"
+              }
+            }
+          ],
+      "selection": {
+        "div_selection": {
+          "type": "multi",
+          "fields": ["Divisions"]
+        }
+      },
+      "mark": {
+        "type": "bar",
+        "fill": "#a79b9b"
+      },
+      "encoding": {
+        "x": {
+          "field": "Thefts",
+          "type": "quantitative",
+          "aggregate": "sum",
+          "axis": {
+            "title": "Total Thefts Per Division",
+            "titleFontSize": 16,
+            "labelFontSize": 12,
+            "tickCount": 2,
+            "gridOpacity": 0.5
+          }
+        },
+        "y": {
+          "field": "Divisions",
+          "type": "nominal",
+          "sort": "-x",
+          "axis": {
+            "title": null,
+            "labelFontSize": 12
+          }
+        },
+        "fillOpacity": {
+          "condition": {
+            "selection": "div_selection",
+            "value": 1
+          },
+          "value": 0.3
+        }
+      }
+    }
+  ],
+  "config": {
+        "legend": {
+          "orient": "top-left"
+        }
+      }
+}
